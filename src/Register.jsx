@@ -1,8 +1,9 @@
-import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, sendEmailVerification } from "firebase/auth";
 import app from "./firebase.confiq";
 import { useState } from "react";
 import { IoMdEyeOff } from "react-icons/io";
 import { IoEyeOutline } from "react-icons/io5";
+import { Link } from "react-router-dom";
 
 const Register = () => {
   const [registarError, setRegisterError] = useState("");
@@ -13,7 +14,8 @@ const Register = () => {
     e.preventDefault();
     const email = e.target.email.value;
     const password = e.target.password.value;
-    console.log(email, password);
+    const accepted = e.target.terms.checked;
+    console.log(email, password, accepted);
     if (password.length < 6) {
       setRegisterError(" Password should be at least 6 characters");
       return;
@@ -22,6 +24,9 @@ const Register = () => {
         "you have should have at least one uppercase characters"
       );
       return;
+    } else if (!accepted) {
+      setRegisterError("please accepted");
+      return;
     }
     setRegisterError("");
     setSuccess("");
@@ -29,6 +34,10 @@ const Register = () => {
       .then((result) => {
         console.log(result.user);
         setSuccess("user create a successfully");
+        sendEmailVerification(result.user)
+        .then(()=> {
+         alert('please check your email and verify your acoount')
+        })
       })
       .catch((error) => {
         console.error(error);
@@ -37,10 +46,18 @@ const Register = () => {
   };
   return (
     <div>
+      <h2 className="text-center text-2xl font-semibold my-3">Register </h2>
       <form
         onSubmit={handleRegister}
-        className="flex flex-col gap-3 mt-3 w-56 mx-auto"
+        className="flex flex-col gap-3 mt-3 w-2/12 mx-auto"
       >
+        <input
+          className="px-3 py-2 rounded-lg"
+          type="name"
+          name="text"
+          placeholder="Your Name"
+          required
+        />
         <input
           className="px-3 py-2 rounded-lg"
           type="email"
@@ -68,6 +85,12 @@ const Register = () => {
             )}
           </span>
         </div>
+        <div className="flex items-center gap-2">
+          <input type="checkbox" name="terms" id="terms" />
+          <label htmlFor="terms">
+            Acepect our <Link to="/login">Terms and Conditon</Link>
+          </label>
+        </div>
         <input
           className="px-3 py-2 rounded-lg bg-orange-500 text-white"
           type="submit"
@@ -80,6 +103,7 @@ const Register = () => {
       <div className="text-center text-green-500">
         {success && <p>{success}</p>}
       </div>
+      <p className="text-center  mt-2 ">Already have an account? <Link className="hover:underline" to='/login'>Login</Link> </p>
     </div>
   );
 };
